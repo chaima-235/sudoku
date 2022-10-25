@@ -123,11 +123,10 @@ def solve(grid):
 
 
 def randomkey(values):
-    global key
     for s in squares:
-        if(len(values.get(s))!=1):
-            key = random.choice(list(values))
-    return key
+        if(not (len(values.get(s))== 1)):
+            return random.choice(list(values))
+
 
 
 def split(string):
@@ -141,17 +140,19 @@ def search(values):
     if all(len(values[s]) == 1 for s in squares):
         return values  ## Solved!
     lst = []
-    # k = randomkey(values)
-    # v = (values[k])
-    # print(split(v))
-
-    # eliminate(values,randomkey(values),randomkey(values[s] for s in squares))
+    k = randomkey(values)
+    print(k)
+    v = (values[k])
+    tabValues = split(v)
+    randomValues = random.choice(tabValues)
+    print(randomValues)
 
     # Chose the unfilled square s with the fewest possibilities
-    n,s = min((len(values[s]), s) for s in squares if len(values[s]) > 1)
-
-    return some(search(assign(values.copy(), s, d))
-                for d in values[s])
+    # n,s = min((len(values[s]), s) for s in squares if len(values[s])à
+    # > 1)
+    values = assign(values,k,randomValues)
+    print(values)
+    return search(values)
 
 
 ################ Utilities ################
