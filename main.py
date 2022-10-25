@@ -75,6 +75,7 @@ def assign(values, s, d):
     if all(eliminate(values, s, d2) for d2 in other_values):
         return values
     else:
+        print("on est dans assign")
         return False
 
 
@@ -86,20 +87,29 @@ def eliminate(values, s, d):
     values[s] = values[s].replace(d, '')
     ## (1) If a square s is reduced to one value d2, then eliminate d2 from the peers.
     if len(values[s]) == 0:
+        print("alooooo1")
         return False  ## Contradiction: removed last value
     elif len(values[s]) == 1:
+       # print(str(len(values[s])) + ' lenvalues')
         d2 = values[s]
+      #  print(d2 + ' d2')
         if not all(eliminate(values, s2, d2) for s2 in peers[s]):
+            print("alooooo2")
             return False
+
     ## (2) If a unit u is reduced to only one place for a value d, then put it there.
     for u in units[s]:
         dplaces = [s for s in u if d in values[s]]
         if len(dplaces) == 0:
-            return False  ## Contradiction: no place for this value
+            print("alooooo3")
+            return False
+            ## Contradiction: no place for this value
         elif len(dplaces) == 1:
             # d can only be in one place in unit; assign it there
             if not assign(values, dplaces[0], d):
+                print("alooooo4")
                 return False
+
     return values
 
 
@@ -127,11 +137,17 @@ def randomkey(values):
         if(not (len(values.get(s))== 1)):
             return random.choice(list(values))
 
-
-
 def split(string):
     return list(string)
 
+def fillGrid(values):
+    k = randomkey(values)
+    print(k)
+    v = (values[k])
+    tabValues = split(v)
+    randomValues = random.choice(tabValues)
+    print(randomValues)
+    return assign(values, k, randomValues)
 
 def search(values):
     "Using depth-first search and propagation, try all possible values."
@@ -139,20 +155,10 @@ def search(values):
         return False  ## Failed earlier
     if all(len(values[s]) == 1 for s in squares):
         return values  ## Solved!
-    lst = []
-    k = randomkey(values)
-    print(k)
-    v = (values[k])
-    tabValues = split(v)
-    randomValues = random.choice(tabValues)
-    print(randomValues)
+    while (not(all(len(values[s]) == 1 for s in squares))):
+        l = fillGrid(values)
+        return some(search(fillGrid(values)))
 
-    # Chose the unfilled square s with the fewest possibilities
-    # n,s = min((len(values[s]), s) for s in squares if len(values[s])à
-    # > 1)
-    values = assign(values,k,randomValues)
-    print(values)
-    return search(values)
 
 
 ################ Utilities ################
