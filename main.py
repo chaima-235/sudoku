@@ -75,7 +75,6 @@ def assign(values, s, d):
     if all(eliminate(values, s, d2) for d2 in other_values):
         return values
     else:
-        print("on est dans assign")
         return False
 
 
@@ -87,27 +86,23 @@ def eliminate(values, s, d):
     values[s] = values[s].replace(d, '')
     ## (1) If a square s is reduced to one value d2, then eliminate d2 from the peers.
     if len(values[s]) == 0:
-        print("alooooo1")
         return False  ## Contradiction: removed last value
     elif len(values[s]) == 1:
        # print(str(len(values[s])) + ' lenvalues')
         d2 = values[s]
       #  print(d2 + ' d2')
         if not all(eliminate(values, s2, d2) for s2 in peers[s]):
-            print("alooooo2")
             return False
 
     ## (2) If a unit u is reduced to only one place for a value d, then put it there.
     for u in units[s]:
         dplaces = [s for s in u if d in values[s]]
         if len(dplaces) == 0:
-            print("alooooo3")
             return False
             ## Contradiction: no place for this value
         elif len(dplaces) == 1:
             # d can only be in one place in unit; assign it there
             if not assign(values, dplaces[0], d):
-                print("alooooo4")
                 return False
 
     return values
@@ -131,11 +126,17 @@ def display(values):
 def solve(grid):
     return search(parse_grid(grid))
 
-
 def randomkey(values):
-    for s in squares:
-        if(not (len(values.get(s))== 1)):
-            return random.choice(list(values))
+    new_values = dict()
+    for (key, value) in values.items():
+        if ((len(value) >1)):
+            new_values[key] = value
+
+    choice = random.choice(list(new_values))
+    del new_values[choice]
+    l = new_values
+    print(l)
+    return choice
 
 def split(string):
     return list(string)
@@ -156,8 +157,9 @@ def search(values):
     if all(len(values[s]) == 1 for s in squares):
         return values  ## Solved!
     while (not(all(len(values[s]) == 1 for s in squares))):
-        l = fillGrid(values)
-        return some(search(fillGrid(values)))
+        l =search(fillGrid(values))
+        print(l)
+        return l
 
 
 
