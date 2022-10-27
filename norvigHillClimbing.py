@@ -149,20 +149,52 @@ def unit1(values):
 
 def remplissage(values):
     square_dict = unit1(values)
-    lst_digit = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    for index,key in enumerate(square_dict):
-        for i in lst_digit:
-            while(len(lst_digit) != 0):
-              if square_dict[key] in lst_digit and square_dict[key] != '.':
-                    lst_digit.remove(i)
-                    index+=1
-              elif square_dict[key] == '.':
-                    x = random.choice(lst_digit)
-                    square_dict.update({key:str(x)})
-                    lst_digit.remove(x)
-        lst_digit = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    square_dict_final = dict()
+    lst_digit = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+    for i in range(0,9):
+        square_dict_final= remplissage_square(square_dict,square_dict_final)
 
-    return square_dict
+
+    return square_dict_final
+
+def remplissage_square(square_dict,square_dict_final):
+    lst_digit = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+    lst_already_popped = []
+    for index, key in enumerate(square_dict):
+        if index < 9:
+            square_dict_final[key] = square_dict.get(key)
+            lst_already_popped.append(key)
+            if square_dict.get(key) in lst_digit:
+                lst_digit.remove(square_dict.get(key))
+        if index == 9:
+            break
+
+    for key in lst_already_popped:
+            square_dict.pop(key)
+
+    for index, key in enumerate(square_dict_final):
+        if square_dict_final[key] == '.':
+            x = random.choice(lst_digit)
+            square_dict_final.update({key:str(x)})
+            lst_digit.remove(x)
+    return square_dict_final
+
+def update_values(square_dict_final, values):
+    for key in values:
+        if key in square_dict_final:
+            values[key] = square_dict_final[key]
+    return values
+
+def conflicts(values):
+    columns = list()
+    count_duplicates = 0
+    for column in [cross(rows, c) for c in cols]:
+        for i in column:
+            columns.append(values[i])
+            count_duplicates = columns.count(values[i])
+    print(columns)
+    print(count_duplicates)
+    print(column[0])
 
 
 
@@ -262,8 +294,10 @@ if __name__ == '__main__':
 # solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-print(grid_values(grid2))
-print(remplissage(grid_values(grid2)))
+#print(grid_values(grid2))
+#print(remplissage(grid_values(grid2)))
+print(update_values(remplissage(grid_values(grid2)), grid_values(grid2)))
+print(conflicts(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
