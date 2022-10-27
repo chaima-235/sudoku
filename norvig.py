@@ -88,23 +88,18 @@ def eliminate(values, s, d):
     if len(values[s]) == 0:
         return False  ## Contradiction: removed last value
     elif len(values[s]) == 1:
-       # print(str(len(values[s])) + ' lenvalues')
         d2 = values[s]
-      #  print(d2 + ' d2')
         if not all(eliminate(values, s2, d2) for s2 in peers[s]):
             return False
-
     ## (2) If a unit u is reduced to only one place for a value d, then put it there.
     for u in units[s]:
         dplaces = [s for s in u if d in values[s]]
         if len(dplaces) == 0:
-            return False
-            ## Contradiction: no place for this value
+            return False  ## Contradiction: no place for this value
         elif len(dplaces) == 1:
             # d can only be in one place in unit; assign it there
             if not assign(values, dplaces[0], d):
                 return False
-
     return values
 
 
@@ -118,37 +113,12 @@ def display(values):
         print(''.join(values[r + c].center(width) + ('|' if c in '36' else ''))
               for c in cols)
         if r in 'CF': print(line)
-    print
 
 
 ################ Search ################
 
-def solve(grid):
-    return search(parse_grid(grid))
+def solve(grid): return search(parse_grid(grid))
 
-def randomkey(values):
-    new_values = dict()
-    for (key, value) in values.items():
-        if ((len(value) >1)):
-            new_values[key] = value
-
-    choice = random.choice(list(new_values))
-    del new_values[choice]
-    l = new_values
-    print(l)
-    return choice
-
-def split(string):
-    return list(string)
-
-def fillGrid(values):
-    k = randomkey(values)
-    print(k)
-    v = (values[k])
-    tabValues = split(v)
-    randomValues = random.choice(tabValues)
-    print(randomValues)
-    return assign(values, k, randomValues)
 
 def search(values):
     "Using depth-first search and propagation, try all possible values."
@@ -156,11 +126,10 @@ def search(values):
         return False  ## Failed earlier
     if all(len(values[s]) == 1 for s in squares):
         return values  ## Solved!
-    while (not(all(len(values[s]) == 1 for s in squares))):
-        l =search(fillGrid(values))
-        print(l)
-        return l
-
+    ## Chose the unfilled square s with the fewest possibilities
+    n, s = min((len(values[s]), s) for s in squares if len(values[s]) > 1)
+    return some(search(assign(values.copy(), s, d))
+                for d in values[s])
 
 
 ################ Utilities ################
@@ -197,7 +166,7 @@ def solve_all(grids, name='', showif=0.0):
     def time_solve(grid):
         start = time.perf_counter()
         values = solve(grid)
-        t = time.perf_counter() - start
+        t = time.clock() - start
         ## Display puzzles that take long enough
         if showif is not None and t > showif:
             display(grid_values(grid))
@@ -240,15 +209,12 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 
 if __name__ == '__main__':
     test()
-    # solve_all(from_file("easy50.txt", '========'), "easy", None)
-    # solve_all(from_file("top95.txt"), "hard", None)
-    # solve_all(from_file("hardest.txt"), "hardest", None)
-    # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-    # search(parse_grid(grid1))
-    # search(parse_grid(grid1))
-    # print(parse_grid(grid2))
-    print(search(parse_grid(grid2)))
-    # print(randomkey(parse_grid(grid2)))
+# solve_all(from_file("top95.txt"), "95sudoku", None)
+# solve_all(from_file("easy50.txt", '========'), "easy", None)
+# solve_all(from_file("easy50.txt", '========'), "easy", None)
+# solve_all(from_file("top95.txt"), "hard", None)
+# solve_all(from_file("hardest.txt"), "hardest", None)
+# solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
