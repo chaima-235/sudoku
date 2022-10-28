@@ -231,6 +231,7 @@ def conflicts_sum(values):
     return conflits_total
 
 def hill_climbing(values):
+    squares_and_grid = dict()
     neighbors = dict()
     lst=[]
     list_of_dict = dict()
@@ -251,8 +252,9 @@ def hill_climbing(values):
                 copy_values[l], copy_values[r] = copy_values[r], copy_values[l]
                 neighbors[l] = r
 
-    print(split_lst)
-    print(list_of_dict)
+        for i in list_new:
+            for j in i:
+                squares_and_grid[j] = i
 
     return list_new
 
