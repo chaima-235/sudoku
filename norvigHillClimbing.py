@@ -2,6 +2,9 @@
 
 ## See http://norvig.com/sudoku.html
 
+import sys
+from itertools import islice
+
 ## Throughout this program we have:
 ##   r is a row,    e.g. 'A'
 ##   c is a column, e.g. '3'
@@ -11,7 +14,8 @@
 ##   grid is a grid,e.g. 81 non-blank chars, e.g. starting with '.18...7...
 ##   values is a dict of possible values, e.g. {'A1':'12349', 'A2':'8', ...}
 import numpy as np
-import sys
+
+
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [a + b for a in A for b in B]
@@ -132,7 +136,6 @@ def returnValues(values) :
         lst.append(value)
         return lst
 
-
 def unit1(values):
     lst=[3,6,9]
     lst_value = returnValues(values)
@@ -230,7 +233,43 @@ def conflicts_sum(values):
     conflits_total = row_conflicts(values)+columns_conflicts(values)
     return conflits_total
 
-def hill_climbing(values):
+
+def hill_climbing(values, grid):
+    current = values
+    lst = []
+    previous = []
+    conflict = 5000
+    nouv_values = None
+    list_key_with_valeur = list_return_key_chiffre(grid)
+    for s in squares:
+        succ = current.copy()
+        l = carre_list(remplissage(values))[s]
+        filtered = [x for x in l if x not in previous and x not in list_key_with_valeur]
+        for i in filtered:
+            if (i != s):
+                succ[i], succ[s] = succ[s], succ[i]
+                lst.append(succ)
+        previous.append(s)
+
+    for j in lst:
+        if (conflicts_sum(j) < conflict):
+          conflict = conflicts_sum(j)
+          nouv_values = j
+
+    return nouv_values, conflict
+
+
+def list_return_key_chiffre(grid):
+     values_original = grid_values(grid)
+     lst =[]
+     for i  in values_original:
+         if not(values_original[i] =='.'):
+             lst.append(i)
+     return lst
+
+def solve_hillClimbing(grid): return hill_climbing(search(parse_grid(grid)),grid)
+
+def carre_list(values):
     squares_and_grid = dict()
     neighbors = dict()
     lst=[]
@@ -244,7 +283,6 @@ def hill_climbing(values):
 
     for i in list_new:
         for j in i:
-            score = 0
             copy_values = values.copy()
             l = random.choice(i)
             r = random.choice(i)
@@ -256,11 +294,7 @@ def hill_climbing(values):
             for j in i:
                 squares_and_grid[j] = i
 
-    return list_new
-
-def split(list_a, chunk_size):
-  for i in range(0, len(list_a), chunk_size):
-    yield list_a[i:i + chunk_size]
+    return squares_and_grid
 
 def search(values):
     "Using depth-first search and propagation, try all possible values."
@@ -354,17 +388,11 @@ if __name__ == '__main__':
 # solve_all(from_file("top95.txt"), "95sudoku", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
-# solve_all(from_file("100sudoku.txt"), "hard", None)
+solve_all(from_file("100sudoku.txt"), "hard", None)
 # solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-#print(grid_values(grid2))
-#print(remplissage(grid_values(grid2)))
-# print(hill_climbing_heuristic(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
-# print(conflicts_sum(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
-print(hill_climbing(remplissage(grid_values(grid2))))
 
-# print(conflicts(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
