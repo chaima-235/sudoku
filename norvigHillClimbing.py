@@ -10,7 +10,7 @@
 ##   u is a unit,   e.g. ['A1','B1','C1','D1','E1','F1','G1','H1','I1']
 ##   grid is a grid,e.g. 81 non-blank chars, e.g. starting with '.18...7...
 ##   values is a dict of possible values, e.g. {'A1':'12349', 'A2':'8', ...}
-
+import numpy as np
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [a + b for a in A for b in B]
@@ -27,6 +27,10 @@ units = dict((s, [u for u in unitlist if s in u])
              for s in squares)
 peers = dict((s, set(sum(units[s], [])) - set([s]))
              for s in squares)
+
+box = dict((s, set(sum([units[s][2]],[]))-set([s])) ## Only boxes
+             for s in squares)
+
 
 
 ################ Unit Tests ################
@@ -185,18 +189,74 @@ def update_values(square_dict_final, values):
             values[key] = square_dict_final[key]
     return values
 
-def conflicts(values):
-    columns = list()
-    count_duplicates = 0
+def columns_conflicts(values):
+    conflicts = 0
     for column in [cross(rows, c) for c in cols]:
+        list_columns = []
         for i in column:
-            columns.append(values[i])
-            count_duplicates = columns.count(values[i])
-    print(columns)
-    print(count_duplicates)
-    print(column[0])
+            list_columns.append(values[i])
+        items_duplicated = []
+        nb_duplicates = []
+        for j in list_columns:
 
+            if (list_columns.count(j) > 1):
+                nb_duplicates.append(j)
+                if not (j in items_duplicated):
+                     items_duplicated.append(j)
 
+        conflicts += len(nb_duplicates) - len(items_duplicated)
+
+    return conflicts
+
+def row_conflicts(values):
+    conflicts = 0
+    for row in [cross(r, cols) for r in rows]:  ## For rows
+        list_rows = []
+
+        for s in row:
+            list_rows.append(values[s])
+
+        items_duplicated = []
+        nb_duplicates = []
+        for j in list_rows:
+            if (list_rows.count(j) > 1):
+                nb_duplicates.append(j)
+                if not(j in items_duplicated):
+                  items_duplicated.append(j)
+
+        conflicts += len(nb_duplicates) - len(items_duplicated)
+
+    return conflicts
+
+def conflicts_sum(values):
+    conflits_total = row_conflicts(values)+columns_conflicts(values)
+    return conflits_total
+
+def hill_climbing(values):
+    lst=[]
+    split_lst = []
+    list_of_dict = dict()
+    list_new =[]
+    for key in values:
+        lst.append(key)
+    split_lst = np.array_split(lst, 9)
+    for array in split_lst:
+            list_new.append(list(array))
+
+    for i in list_new:
+        for j in i:
+            l, r = i.index(random.choice(i)),i.index(random.choice(i))
+            if(l!=r):
+                list_new[i][r], list_new[i][l] = list_new[i][r], list_new[i][r]
+    # print(split_lst)
+
+    print(list_of_dict)
+
+    return list_new
+
+def split(list_a, chunk_size):
+  for i in range(0, len(list_a), chunk_size):
+    yield list_a[i:i + chunk_size]
 
 def search(values):
     "Using depth-first search and propagation, try all possible values."
@@ -296,8 +356,11 @@ if __name__ == '__main__':
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
 #print(grid_values(grid2))
 #print(remplissage(grid_values(grid2)))
-print(update_values(remplissage(grid_values(grid2)), grid_values(grid2)))
-print(conflicts(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
+# print(hill_climbing_heuristic(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
+# print(conflicts_sum(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
+print(hill_climbing(remplissage(grid_values(grid2))))
+
+# print(conflicts(update_values(remplissage(grid_values(grid2)), grid_values(grid2))))
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
