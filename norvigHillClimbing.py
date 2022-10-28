@@ -11,6 +11,7 @@
 ##   grid is a grid,e.g. 81 non-blank chars, e.g. starting with '.18...7...
 ##   values is a dict of possible values, e.g. {'A1':'12349', 'A2':'8', ...}
 import numpy as np
+import sys
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [a + b for a in A for b in B]
@@ -27,11 +28,8 @@ units = dict((s, [u for u in unitlist if s in u])
              for s in squares)
 peers = dict((s, set(sum(units[s], [])) - set([s]))
              for s in squares)
-
 box = dict((s, set(sum([units[s][2]],[]))-set([s])) ## Only boxes
              for s in squares)
-
-
 
 ################ Unit Tests ################
 
@@ -233,8 +231,8 @@ def conflicts_sum(values):
     return conflits_total
 
 def hill_climbing(values):
+    neighbors = dict()
     lst=[]
-    split_lst = []
     list_of_dict = dict()
     list_new =[]
     for key in values:
@@ -245,11 +243,15 @@ def hill_climbing(values):
 
     for i in list_new:
         for j in i:
-            l, r = i.index(random.choice(i)),i.index(random.choice(i))
-            if(l!=r):
-                list_new[i][r], list_new[i][l] = list_new[i][r], list_new[i][r]
-    # print(split_lst)
+            score = 0
+            copy_values = values.copy()
+            l = random.choice(i)
+            r = random.choice(i)
+            if (l != r):
+                copy_values[l], copy_values[r] = copy_values[r], copy_values[l]
+                neighbors[l] = r
 
+    print(split_lst)
     print(list_of_dict)
 
     return list_new
