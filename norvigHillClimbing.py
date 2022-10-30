@@ -32,8 +32,6 @@ units = dict((s, [u for u in unitlist if s in u])
              for s in squares)
 peers = dict((s, set(sum(units[s], [])) - set([s]))
              for s in squares)
-box = dict((s, set(sum([units[s][2]],[]))-set([s])) ## Only boxes
-             for s in squares)
 
 ################ Unit Tests ################
 
@@ -139,7 +137,6 @@ def returnValues(values) :
 def unit1(values):
     lst=[3,6,9]
     lst_value = returnValues(values)
-    print(lst_value)
     squares_dict = dict()
     list_squares =[]
 
@@ -226,7 +223,6 @@ def row_conflicts(values):
                   items_duplicated.append(j)
 
         conflicts += len(nb_duplicates) - len(items_duplicated)
-
     return conflicts
 
 def conflicts_sum(values):
@@ -242,21 +238,22 @@ def hill_climbing(values, grid):
     nouv_values = None
     list_key_with_valeur = list_return_key_chiffre(grid)
     for s in squares:
-        succ = current.copy()
-        l = carre_list(remplissage(values))[s]
-        filtered = [x for x in l if x not in previous and x not in list_key_with_valeur]
-        for i in filtered:
-            if (i != s):
-                succ[i], succ[s] = succ[s], succ[i]
-                lst.append(succ)
-        previous.append(s)
+        if s not in list_key_with_valeur:
+            succ = current.copy()
+            l = carre_list(remplissage(values))[s]
+            filtered = [x for x in l if x not in previous and x not in list_key_with_valeur]
+            for i in filtered:
+                if (i != s):
+                    succ[i], succ[s] = succ[s], succ[i]
+                    lst.append(succ)
+            previous.append(s)
 
     for j in lst:
         if (conflicts_sum(j) < conflict):
           conflict = conflicts_sum(j)
           nouv_values = j
 
-    return nouv_values, conflict
+    return nouv_values
 
 
 def list_return_key_chiffre(grid):
@@ -271,29 +268,16 @@ def solve_hillClimbing(grid): return hill_climbing(search(parse_grid(grid)),grid
 
 def carre_list(values):
     squares_and_grid = dict()
-    neighbors = dict()
     lst=[]
-    list_of_dict = dict()
     list_new =[]
     for key in values:
         lst.append(key)
     split_lst = np.array_split(lst, 9)
     for array in split_lst:
-            list_new.append(list(array))
-
-    for i in list_new:
-        for j in i:
-            copy_values = values.copy()
-            l = random.choice(i)
-            r = random.choice(i)
-            if (l != r):
-                copy_values[l], copy_values[r] = copy_values[r], copy_values[l]
-                neighbors[l] = r
-
+        list_new.append(list(array))
         for i in list_new:
             for j in i:
                 squares_and_grid[j] = i
-
     return squares_and_grid
 
 def search(values):
@@ -341,7 +325,7 @@ def solve_all(grids, name='', showif=0.0):
 
     def time_solve(grid):
         start = time.perf_counter()
-        values = solve(grid)
+        values = solve_hillClimbing(grid)
         t = time.perf_counter() - start
         ## Display puzzles that take long enough
         if showif is not None and t > showif:
@@ -385,13 +369,15 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 
 if __name__ == '__main__':
     test()
-# solve_all(from_file("top95.txt"), "95sudoku", None)
+#solve_all(from_file("grid2.txt"), "grid2", None)
+solve_all(from_file("top95.txt"), "95sudoku", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
-solve_all(from_file("100sudoku.txt"), "hard", None)
+#solve_all(from_file("100sudoku.txt"), "hard", None)
 # solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
+#hill_climbing(parse_grid(grid2), grid2)
 
 
 ## References used:
