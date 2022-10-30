@@ -1,4 +1,6 @@
 ## Solve Every Sudoku Puzzle
+from itertools import islice
+
 
 ## See http://norvig.com/sudoku.html
 
@@ -174,7 +176,10 @@ def return_rows (values):
         for j in list_rows:
             if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_j):
                 list_j.append(j)
-                filtered = [x for x in list_rows if x != j]
+                filtered = [x for x in list_rows]
+                for t in filtered:
+                    if t == j:
+                        filtered[filtered.index(j)] = '0'
                 for i in filtered:
                     if (j[0] in i and j[1] in i):
                         for k in j :
@@ -189,6 +194,7 @@ def return_rows (values):
         lst = []
         list_rows = []
         list_j = []
+    print(all_clean)
     return all_clean
 
 def checkIfDuplicates(listOfElems):
