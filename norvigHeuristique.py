@@ -11,6 +11,7 @@
 ##   grid is a grid,e.g. 81 non-blank chars, e.g. starting with '.18...7...
 ##   values is a dict of possible values, e.g. {'A1':'12349', 'A2':'8', ...}
 
+
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [a + b for a in A for b in B]
@@ -120,6 +121,120 @@ def display(values):
 def solve(grid): return search(parse_grid(grid))
 
 
+def chunks(data,size):
+    it = iter(data)
+    for i in range(0, len(data), size):
+        yield {k: data[k] for k in islice(it, size)}
+def all_keys(values):
+    lst=[]
+    for key in values:
+        lst.append(key)
+    return lst
+
+#
+# def return_rows (values):
+#     print(values)
+#     values.update({'A2':'16'})
+#     values.update({'A4':'16'})
+#     list_rows = []
+#     lst = []
+#     list_j = []
+#     for row in [cross(r, cols) for r in rows]:  ## For rows
+#         for s in row:
+#             list_rows.append(values[s])
+#
+#     for j in list_rows:
+#         if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_j):
+#             list_j.append(j)
+#             filtered = [x for x in list_rows if x != j]
+#             for i in filtered:
+#                 if (j[0] in i and j[1] in i):
+#                     for k in j:
+#                         if (k in i):
+#                             l = i
+#                             new_seq = l.replace(k, '')
+#                             i = new_seq
+#                 lst.append(i)
+#     print(list_rows)
+#     return lst
+
+def return_rows (values):
+    print(values)
+    values.update({'A2':'16'})
+    values.update({'A4':'16'})
+    values.update({'B2':'67'})
+    values.update({'B3':'67'})
+    list_rows = []
+    lst = []
+    list_j = []
+    all_clean= []
+    for row in [cross(r, cols) for r in rows]:  ## For rows
+        for s in row:
+            list_rows.append(values[s])
+        for j in list_rows:
+            if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_j):
+                list_j.append(j)
+                filtered = [x for x in list_rows if x != j]
+                for i in filtered:
+                    if (j[0] in i and j[1] in i):
+                        for k in j :
+                            if (k in i):
+                                new_seq = i.replace(k, '')
+                                i=new_seq
+                    lst.append(i)
+                all_clean.append(lst)
+                lst=[]
+                list_rows=[]
+                list_j=[]
+        lst = []
+        list_rows = []
+        list_j = []
+    return all_clean
+
+def checkIfDuplicates(listOfElems):
+    ''' Check if given list contains any duplicates '''
+    for elem in listOfElems:
+        if listOfElems.count(elem) > 1 and len(elem)==2 :
+            return True
+    return False
+
+
+def update_values_final(values):
+    list_rows = []
+    list_rows_update = return_rows(values)
+    result = []
+    for row in [cross(r, cols) for r in rows]:
+        for s in row:
+            list_rows.append(values[s])
+        if (checkIfDuplicates(list_rows)):
+            for l in list_rows_update:
+                for m in l:
+                    list(map(int, list_rows))
+                    list(map(int, m))
+                    result = [y if x == 0 else x for x, y in zip(l, list_rows)]
+
+
+def returnValues(values) :
+    lst=[]
+    for(key,value) in values.items():
+        lst.append(value)
+        return lst
+
+def unit1(values):
+    lst=[3,6,9]
+    lst_value = returnValues(values)
+    print(lst_value)
+    squares_dict = dict()
+    list_squares =[]
+
+    for i in lst:
+       list_squares.append((units['A'+str(i)][2]))
+       list_squares.append((units['D'+str(i)][2]))
+       list_squares.append((units['G'+str(i)][2]))
+    for i in list_squares:
+        for j in i:
+            squares_dict.update({j : values[j]})
+    return squares_dict
 def search(values):
     "Using depth-first search and propagation, try all possible values."
     if values is False:
@@ -155,7 +270,8 @@ def shuffled(seq):
 
 ################ System test ################
 
-import time, random
+import random
+import time
 
 
 def solve_all(grids, name='', showif=0.0):
@@ -209,13 +325,16 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 
 if __name__ == '__main__':
     test()
-solve_all(from_file("top95.txt"), "95sudoku", None)
+# solve_all(from_file("top95.txt"), "95sudoku", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
-solve_all(from_file("100sudoku.txt"), "hard", None)
-solve_all(from_file("1000sudoku.txt"), "hard", None)
+# solve_all(from_file("100sudoku.txt"), "hard", None)
+# solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
+print(update_values_final(parse_grid(grid2)))
+print(return_rows(parse_grid(grid2)))
+
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
