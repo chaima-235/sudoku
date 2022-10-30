@@ -213,11 +213,15 @@ def update_values_final(values):
         for s in row:
             list_rows.append(values[s])
         if (checkIfDuplicates(list_rows)):
-            for l in list_rows_update:
-                for m in l:
-                    list(map(int, list_rows))
-                    list(map(int, m))
-                    result = [y if x == 0 else x for x, y in zip(l, list_rows)]
+            for z in list_rows_update:
+                for x, y in zip(list_rows, z):
+                    if y == '0' and (z.index(y) < 9):
+                        z[z.index(y)] = list_rows[list_rows.index(x)]
+
+
+
+
+
 
 
 def returnValues(values) :
