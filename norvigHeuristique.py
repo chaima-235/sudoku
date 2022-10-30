@@ -119,8 +119,7 @@ def display(values):
 
 
 ################ Search ################
-
-def solve(grid): return search(parse_grid(grid))
+def solve_naked_pairs(grid): return naked_pairs(search(parse_grid(grid)))
 
 
 def chunks(data,size):
@@ -133,39 +132,8 @@ def all_keys(values):
         lst.append(key)
     return lst
 
-#
-# def return_rows (values):
-#     print(values)
-#     values.update({'A2':'16'})
-#     values.update({'A4':'16'})
-#     list_rows = []
-#     lst = []
-#     list_j = []
-#     for row in [cross(r, cols) for r in rows]:  ## For rows
-#         for s in row:
-#             list_rows.append(values[s])
-#
-#     for j in list_rows:
-#         if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_j):
-#             list_j.append(j)
-#             filtered = [x for x in list_rows if x != j]
-#             for i in filtered:
-#                 if (j[0] in i and j[1] in i):
-#                     for k in j:
-#                         if (k in i):
-#                             l = i
-#                             new_seq = l.replace(k, '')
-#                             i = new_seq
-#                 lst.append(i)
-#     print(list_rows)
-#     return lst
 
 def return_rows (values):
-    print(values)
-    values.update({'A2':'16'})
-    values.update({'A4':'16'})
-    values.update({'B2':'67'})
-    values.update({'B3':'67'})
     list_rows = []
     lst = []
     list_j = []
@@ -194,7 +162,6 @@ def return_rows (values):
         lst = []
         list_rows = []
         list_j = []
-    print(all_clean)
     return all_clean
 
 def checkIfDuplicates(listOfElems):
@@ -208,20 +175,49 @@ def checkIfDuplicates(listOfElems):
 def update_values_final(values):
     list_rows = []
     list_rows_update = return_rows(values)
-    result = []
+    copied_list = []
     for row in [cross(r, cols) for r in rows]:
         for s in row:
             list_rows.append(values[s])
         if (checkIfDuplicates(list_rows)):
             for z in list_rows_update:
                 for x, y in zip(list_rows, z):
-                    if y == '0' and (z.index(y) < 9):
+                    if y == '0':
                         z[z.index(y)] = list_rows[list_rows.index(x)]
+                copied_list.append(list_rows_update[list_rows_update.index(z)])
+                list_rows_update.remove(z)
+            list_rows = []
+    return copied_list
 
+def naked_pairs_heuristic(values):
+    list_rows = []
+    final_rows = []
+    updated_list = update_values_final(values)
+    for row in [cross(r, cols) for r in rows]:
+        for s in row:
+            list_rows.append(values[s])
+        if (checkIfDuplicates(list_rows)):
+            for i in updated_list:
+                l = updated_list.index(i)
+                list_rows = updated_list[updated_list.index(i)]
+                final_rows.append(list_rows)
+                updated_list.remove(i)
+                break
+            list_rows = []
+        else:
+            final_rows.append(list_rows)
+            list_rows = []
+    return final_rows
 
+def convert_list_of_lists_to_list(l):
+    return [item for sublist in l for item in sublist]
 
+def naked_pairs(values):
+    new_values = convert_list_of_lists_to_list(naked_pairs_heuristic(values))
+    for i, key in enumerate(values):
+        values.update({key:new_values[i]})
 
-
+    return values
 
 
 
@@ -234,7 +230,6 @@ def returnValues(values) :
 def unit1(values):
     lst=[3,6,9]
     lst_value = returnValues(values)
-    print(lst_value)
     squares_dict = dict()
     list_squares =[]
 
@@ -278,7 +273,7 @@ def shuffled(seq):
     random.shuffle(seq)
     return seq
 
-
+def solve(grid): return search(parse_grid(grid))
 ################ System test ################
 
 import random
@@ -292,7 +287,7 @@ def solve_all(grids, name='', showif=0.0):
 
     def time_solve(grid):
         start = time.perf_counter()
-        values = solve(grid)
+        values = solve_naked_pairs(grid)
         t = time.perf_counter() - start
         ## Display puzzles that take long enough
         if showif is not None and t > showif:
@@ -336,15 +331,16 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 
 if __name__ == '__main__':
     test()
-# solve_all(from_file("top95.txt"), "95sudoku", None)
+solve_all(from_file("top95.txt"), "95sudoku", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("100sudoku.txt"), "hard", None)
 # solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-print(update_values_final(parse_grid(grid2)))
-print(return_rows(parse_grid(grid2)))
+#print(update_values_final(parse_grid(grid2)))
+#print(return_rows(parse_grid(grid2)))
+
 
 
 ## References used:
