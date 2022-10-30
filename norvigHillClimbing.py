@@ -33,6 +33,7 @@ units = dict((s, [u for u in unitlist if s in u])
 peers = dict((s, set(sum(units[s], [])) - set([s]))
              for s in squares)
 
+
 ################ Unit Tests ################
 
 def test():
