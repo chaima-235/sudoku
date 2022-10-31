@@ -75,13 +75,13 @@ def assign(values, s, d):
     """Eliminate all the other values (except d) from values[s] and propagate.
     Return values, except return False if a contradiction is detected."""
     other_values = values[s].replace(d, '')
-    if all(eliminate(values, s, d2) for d2 in other_values):
+    if all(eliminate_naked_pairs(values, s, d2) for d2 in other_values):
         return values
     else:
         return False
 
 
-def eliminate(values, s, d):
+def eliminate_naked_pairs(values, s, d):
     """Eliminate d from values[s]; propagate when values or places <= 2.
     Return values, except return False if a contradiction is detected."""
     if d not in values[s]:
@@ -92,7 +92,7 @@ def eliminate(values, s, d):
         return False  ## Contradiction: removed last value
     elif len(values[s]) == 1:
         d2 = values[s]
-        if not all(eliminate(values, s2, d2) for s2 in peers[s]):
+        if not all(eliminate_naked_pairs(values, s2, d2) for s2 in peers[s]):
             return False
     ## (2) If a unit u is reduced to only one place for a value d, then put it there.
     for u in units[s]:
@@ -119,7 +119,7 @@ def display(values):
 
 
 ################ Search ################
-def solve_naked_pairs(grid): return naked_pairs(search(parse_grid(grid)))
+def solve_naked_pairs(grid): return naked_pairs_heuristic(search_naked_pairs(parse_grid(grid)))
 
 
 def chunks(data,size):
@@ -136,14 +136,14 @@ def all_keys(values):
 def return_rows (values):
     list_rows = []
     lst = []
-    list_j = []
+    list_filter = []
     all_clean= []
     for row in [cross(r, cols) for r in rows]:  ## For rows
         for s in row:
             list_rows.append(values[s])
         for j in list_rows:
-            if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_j):
-                list_j.append(j)
+            if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_filter):
+                list_filter.append(j)
                 filtered = [x for x in list_rows]
                 for t in filtered:
                     if t == j:
@@ -158,10 +158,10 @@ def return_rows (values):
                 all_clean.append(lst)
                 lst=[]
                 list_rows=[]
-                list_j=[]
+                list_filter=[]
         lst = []
         list_rows = []
-        list_j = []
+        list_filter = []
     return all_clean
 
 def checkIfDuplicates(listOfElems):
@@ -189,7 +189,7 @@ def update_values_final(values):
             list_rows = []
     return copied_list
 
-def naked_pairs_heuristic(values):
+def naked_pairs_values(values):
     list_rows = []
     final_rows = []
     updated_list = update_values_final(values)
@@ -198,7 +198,6 @@ def naked_pairs_heuristic(values):
             list_rows.append(values[s])
         if (checkIfDuplicates(list_rows)):
             for i in updated_list:
-                l = updated_list.index(i)
                 list_rows = updated_list[updated_list.index(i)]
                 final_rows.append(list_rows)
                 updated_list.remove(i)
@@ -212,36 +211,13 @@ def naked_pairs_heuristic(values):
 def convert_list_of_lists_to_list(l):
     return [item for sublist in l for item in sublist]
 
-def naked_pairs(values):
-    new_values = convert_list_of_lists_to_list(naked_pairs_heuristic(values))
+def naked_pairs_heuristic(values):
+    new_values = convert_list_of_lists_to_list(naked_pairs_values(values))
     for i, key in enumerate(values):
         values.update({key:new_values[i]})
-
     return values
 
-
-
-def returnValues(values) :
-    lst=[]
-    for(key,value) in values.items():
-        lst.append(value)
-        return lst
-
-def unit1(values):
-    lst=[3,6,9]
-    lst_value = returnValues(values)
-    squares_dict = dict()
-    list_squares =[]
-
-    for i in lst:
-       list_squares.append((units['A'+str(i)][2]))
-       list_squares.append((units['D'+str(i)][2]))
-       list_squares.append((units['G'+str(i)][2]))
-    for i in list_squares:
-        for j in i:
-            squares_dict.update({j : values[j]})
-    return squares_dict
-def search(values):
+def search_naked_pairs(values):
     "Using depth-first search and propagation, try all possible values."
     if values is False:
         return False  ## Failed earlier
@@ -249,7 +225,7 @@ def search(values):
         return values  ## Solved!
     ## Chose the unfilled square s with the fewest possibilities
     n, s = min((len(values[s]), s) for s in squares if len(values[s]) > 1)
-    return some(search(assign(values.copy(), s, d))
+    return some(search_naked_pairs(assign(values.copy(), s, d))
                 for d in values[s])
 
 
@@ -273,7 +249,7 @@ def shuffled(seq):
     random.shuffle(seq)
     return seq
 
-def solve(grid): return search(parse_grid(grid))
+def solve(grid): return search_naked_pairs(parse_grid(grid))
 ################ System test ################
 
 import random
@@ -310,7 +286,6 @@ def solved(values):
 
     return values is not False and all(unitsolved(unit) for unit in unitlist)
 
-
 def random_puzzle(N=17):
     """Make a random puzzle with N or more assignments. Restart on contradictions.
     Note the resulting puzzle is not guaranteed to be solvable, but empirically
@@ -332,14 +307,11 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 if __name__ == '__main__':
     test()
 solve_all(from_file("top95.txt"), "95sudoku", None)
-# solve_all(from_file("easy50.txt", '========'), "easy", None)
-# solve_all(from_file("easy50.txt", '========'), "easy", None)
-# solve_all(from_file("100sudoku.txt"), "hard", None)
-# solve_all(from_file("1000sudoku.txt"), "hard", None)
-# solve_all(from_file("hardest.txt"), "hardest", None)
-# solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-#print(update_values_final(parse_grid(grid2)))
-#print(return_rows(parse_grid(grid2)))
+solve_all(from_file("easy50.txt", '========'), "easy", None)
+solve_all(from_file("100sudoku.txt"), "hard", None)
+solve_all(from_file("1000sudoku.txt"), "hard", None)
+solve_all(from_file("hardest.txt"), "hardest", None)
+solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
 
 
 
