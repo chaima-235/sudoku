@@ -124,43 +124,42 @@ def display(values):
 
 def solve(grid): return search(parse_grid(grid))
 
-def convert(a):
-    it = iter(a)
-    res_dect=dict(zip(it,''))
-    return res_dect
 
-def returnValues(values) :
-    lst=[]
-    for(key,value) in values.items():
+# returns values associated to key
+def returnValues(values):
+    lst = []
+    for (key, value) in values.items():
         lst.append(value)
         return lst
 
-def unit1(values):
-    lst=[3,6,9]
-    lst_value = returnValues(values)
+
+# returns a dictionary of all 9 squares with keys and values
+def nine_squares(values):
+    lst = [3, 6, 9]
     squares_dict = dict()
-    list_squares =[]
+    list_squares = []
 
     for i in lst:
-       list_squares.append((units['A'+str(i)][2]))
-       list_squares.append((units['D'+str(i)][2]))
-       list_squares.append((units['G'+str(i)][2]))
+        list_squares.append((units['A' + str(i)][2]))
+        list_squares.append((units['D' + str(i)][2]))
+        list_squares.append((units['G' + str(i)][2]))
+
     for i in list_squares:
         for j in i:
-            squares_dict.update({j : values[j]})
+            squares_dict.update({j: values[j]})
     return squares_dict
 
-def remplissage(values):
-    square_dict = unit1(values)
+#returns dictionary with random values by squares
+def fill(values):
+    square_dict = nine_squares(values)
     square_dict_final = dict()
-    lst_digit = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-    for i in range(0,9):
-        square_dict_final= remplissage_square(square_dict,square_dict_final)
-
+    for i in range(0, 9):
+        square_dict_final = fill_square(square_dict, square_dict_final)
 
     return square_dict_final
 
-def remplissage_square(square_dict,square_dict_final):
+#randomly assign values to keys
+def fill_square(square_dict, square_dict_final):
     lst_digit = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
     lst_already_popped = []
     for index, key in enumerate(square_dict):
@@ -173,21 +172,23 @@ def remplissage_square(square_dict,square_dict_final):
             break
 
     for key in lst_already_popped:
-            square_dict.pop(key)
+        square_dict.pop(key)
 
     for index, key in enumerate(square_dict_final):
         if square_dict_final[key] == '.':
             x = random.choice(lst_digit)
-            square_dict_final.update({key:str(x)})
+            square_dict_final.update({key: str(x)})
             lst_digit.remove(x)
     return square_dict_final
 
+#updates all values in original dictionary
 def update_values(square_dict_final, values):
     for key in values:
         if key in square_dict_final:
             values[key] = square_dict_final[key]
     return values
 
+#returns conflicts in columns
 def columns_conflicts(values):
     conflicts = 0
     for column in [cross(rows, c) for c in cols]:
@@ -201,12 +202,13 @@ def columns_conflicts(values):
             if (list_columns.count(j) > 1):
                 nb_duplicates.append(j)
                 if not (j in items_duplicated):
-                     items_duplicated.append(j)
+                    items_duplicated.append(j)
 
         conflicts += len(nb_duplicates) - len(items_duplicated)
 
     return conflicts
 
+#returns number of conflicts in rows
 def row_conflicts(values):
     conflicts = 0
     for row in [cross(r, cols) for r in rows]:  ## For rows
@@ -220,66 +222,72 @@ def row_conflicts(values):
         for j in list_rows:
             if (list_rows.count(j) > 1):
                 nb_duplicates.append(j)
-                if not(j in items_duplicated):
-                  items_duplicated.append(j)
+                if not (j in items_duplicated):
+                    items_duplicated.append(j)
 
         conflicts += len(nb_duplicates) - len(items_duplicated)
     return conflicts
 
+#returns total number of conflicts (rows + columns)
 def conflicts_sum(values):
-    conflits_total = row_conflicts(values)+columns_conflicts(values)
+    conflits_total = row_conflicts(values) + columns_conflicts(values)
     return conflits_total
 
-
+#implementation of heuristic
 def hill_climbing(values, grid):
     current = values
     lst = []
     previous = []
-    conflict = 5000
+    conflict = 5000 #random number to begin with
     nouv_values = None
-    list_key_with_valeur = list_return_key_chiffre(grid)
+    list_key_with_valeur = list_only_keys_with_numbers(grid)
+    #returns all keys that already have a value in the original grid
     for s in squares:
-        if s not in list_key_with_valeur:
+        if s not in list_key_with_valeur: #do not take the keys that already have values
             succ = current.copy()
-            l = carre_list(remplissage(values))[s]
+            l = list_squares(fill(values))[s]
             filtered = [x for x in l if x not in previous and x not in list_key_with_valeur]
+            #if we haven't already tried the square and if it doesn't have a value
             for i in filtered:
                 if (i != s):
-                    succ[i], succ[s] = succ[s], succ[i]
+                    succ[i], succ[s] = succ[s], succ[i] #randomly swap 2 values
                     lst.append(succ)
             previous.append(s)
 
     for j in lst:
-        if (conflicts_sum(j) < conflict):
-          conflict = conflicts_sum(j)
-          nouv_values = j
+        if (conflicts_sum(j) < conflict): #if the current sum is lower than the previous
+            conflict = conflicts_sum(j) #update current sum
+            nouv_values = j #put the grid corresponding to the current sum
 
     return nouv_values
 
+#returns all keys that already have a value in the original grid
+def list_only_keys_with_numbers(grid):
+    values_original = grid_values(grid)
+    lst = []
+    for i in values_original:
+        if not (values_original[i] == '.'):
+            lst.append(i)
+    return lst
 
-def list_return_key_chiffre(grid):
-     values_original = grid_values(grid)
-     lst =[]
-     for i  in values_original:
-         if not(values_original[i] =='.'):
-             lst.append(i)
-     return lst
 
-def solve_hillClimbing(grid): return hill_climbing(search(parse_grid(grid)),grid)
+def solve_hillClimbing(grid): return hill_climbing(search(parse_grid(grid)), grid)
 
-def carre_list(values):
+#returns dictionary that has a square as key and box as corresponding value
+def list_squares(values):
     squares_and_grid = dict()
-    lst=[]
-    list_new =[]
+    lst = []
+    list_new = []
     for key in values:
         lst.append(key)
-    split_lst = np.array_split(lst, 9)
+    split_lst = np.array_split(lst, 9) #split into 9 values
     for array in split_lst:
         list_new.append(list(array))
         for i in list_new:
             for j in i:
                 squares_and_grid[j] = i
     return squares_and_grid
+
 
 def search(values):
     "Using depth-first search and propagation, try all possible values."
@@ -326,7 +334,7 @@ def solve_all(grids, name='', showif=0.0):
 
     def time_solve(grid):
         start = time.perf_counter()
-        values = solve_hillClimbing(grid)
+        values = solve_hillClimbing(grid) #call the function
         t = time.perf_counter() - start
         ## Display puzzles that take long enough
         if showif is not None and t > showif:
@@ -370,15 +378,15 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 
 if __name__ == '__main__':
     test()
-#solve_all(from_file("grid2.txt"), "grid2", None)
+# solve_all(from_file("grid2.txt"), "grid2", None)
 solve_all(from_file("top95.txt"), "95sudoku", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
 # solve_all(from_file("easy50.txt", '========'), "easy", None)
-#solve_all(from_file("100sudoku.txt"), "hard", None)
+# solve_all(from_file("100sudoku.txt"), "hard", None)
 # solve_all(from_file("1000sudoku.txt"), "hard", None)
 # solve_all(from_file("hardest.txt"), "hardest", None)
 # solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-#hill_climbing(parse_grid(grid2), grid2)
+
 
 
 ## References used:

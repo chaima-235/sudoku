@@ -122,56 +122,49 @@ def display(values):
 def solve_naked_pairs(grid): return naked_pairs_heuristic(search_naked_pairs(parse_grid(grid)))
 
 
-def chunks(data,size):
-    it = iter(data)
-    for i in range(0, len(data), size):
-        yield {k: data[k] for k in islice(it, size)}
-def all_keys(values):
-    lst=[]
-    for key in values:
-        lst.append(key)
-    return lst
-
-
-def return_rows (values):
+# returns a list of lists with new candidate values based on naked pairs heuristic
+def return_rows(values):
     list_rows = []
     lst = []
     list_filter = []
-    all_clean= []
+    all_clean = []
     for row in [cross(r, cols) for r in rows]:  ## For rows
         for s in row:
             list_rows.append(values[s])
         for j in list_rows:
+            # if the candidate value is of length 2 and is present twice, apply the heuristic
             if (len(j) == 2 and list_rows.count(j) == 2 and j not in list_filter):
                 list_filter.append(j)
                 filtered = [x for x in list_rows]
                 for t in filtered:
                     if t == j:
                         filtered[filtered.index(j)] = '0'
+                # remove the naked pairs from each candidate value except themselves
                 for i in filtered:
-                    if (j[0] in i and j[1] in i):
-                        for k in j :
+                    if j[0] in i and j[1] in i:
+                        for k in j:
                             if (k in i):
                                 new_seq = i.replace(k, '')
-                                i=new_seq
+                                i = new_seq
                     lst.append(i)
                 all_clean.append(lst)
-                lst=[]
-                list_rows=[]
-                list_filter=[]
+                lst = []
+                list_rows = []
+                list_filter = []
         lst = []
         list_rows = []
         list_filter = []
     return all_clean
 
+
+# check if list contains duplicates
 def checkIfDuplicates(listOfElems):
-    ''' Check if given list contains any duplicates '''
     for elem in listOfElems:
-        if listOfElems.count(elem) > 1 and len(elem)==2 :
+        if listOfElems.count(elem) > 1 and len(elem) == 2:
             return True
     return False
 
-
+#change the original values of rows with new candidate valuesa after heuristic
 def update_values_final(values):
     list_rows = []
     list_rows_update = return_rows(values)
@@ -189,6 +182,7 @@ def update_values_final(values):
             list_rows = []
     return copied_list
 
+#return all rows with new values
 def naked_pairs_values(values):
     list_rows = []
     final_rows = []
@@ -208,14 +202,17 @@ def naked_pairs_values(values):
             list_rows = []
     return final_rows
 
+
 def convert_list_of_lists_to_list(l):
     return [item for sublist in l for item in sublist]
 
+#returns the grid for search method
 def naked_pairs_heuristic(values):
     new_values = convert_list_of_lists_to_list(naked_pairs_values(values))
     for i, key in enumerate(values):
-        values.update({key:new_values[i]})
+        values.update({key: new_values[i]})
     return values
+
 
 def search_naked_pairs(values):
     "Using depth-first search and propagation, try all possible values."
@@ -249,7 +246,10 @@ def shuffled(seq):
     random.shuffle(seq)
     return seq
 
+
 def solve(grid): return search_naked_pairs(parse_grid(grid))
+
+
 ################ System test ################
 
 import random
@@ -263,7 +263,7 @@ def solve_all(grids, name='', showif=0.0):
 
     def time_solve(grid):
         start = time.perf_counter()
-        values = solve_naked_pairs(grid)
+        values = solve_naked_pairs(grid) #calls the function
         t = time.perf_counter() - start
         ## Display puzzles that take long enough
         if showif is not None and t > showif:
@@ -286,6 +286,7 @@ def solved(values):
 
     return values is not False and all(unitsolved(unit) for unit in unitlist)
 
+
 def random_puzzle(N=17):
     """Make a random puzzle with N or more assignments. Restart on contradictions.
     Note the resulting puzzle is not guaranteed to be solvable, but empirically
@@ -307,13 +308,11 @@ hard1 = '.....6....59.....82....8....45........3........6..3.54...325..6........
 if __name__ == '__main__':
     test()
 solve_all(from_file("top95.txt"), "95sudoku", None)
-solve_all(from_file("easy50.txt", '========'), "easy", None)
+# solve_all(from_file("easy50.txt", '========'), "easy", None)
 solve_all(from_file("100sudoku.txt"), "hard", None)
 solve_all(from_file("1000sudoku.txt"), "hard", None)
-solve_all(from_file("hardest.txt"), "hardest", None)
+# solve_all(from_file("hardest.txt"), "hardest", None)
 solve_all([random_puzzle() for _ in range(99)], "random", 100.0)
-
-
 
 ## References used:
 ## http://www.scanraid.com/BasicStrategies.htm
